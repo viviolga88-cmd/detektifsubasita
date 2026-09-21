@@ -1,0 +1,963 @@
+
+<html lang="jv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Detektif Subasita: Rekonstruksi Luputing Tata Krama</title>
+    <!-- Tailwind CSS for Responsive Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kayuTua: '#1c0d06',
+                        kayuSedang: '#361b0c',
+                        emasJawa: '#d4af37',
+                        emasRedup: '#997e28',
+                        kertasSutra: '#f4ece1',
+                        merahAksen: '#8c1c1c',
+                        hijauSubasita: '#1f6b38'
+                    },
+                    fontFamily: {
+                        jawa: ['Georgia', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+        body {
+            font-family: 'Lora', Georgia, serif;
+            background-color: #120804;
+            color: #f4ece1;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+
+        .title-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Javanese Carved Wooden Frame Effect */
+        .frame-ukiran {
+            border: 4px solid #d4af37;
+            box-shadow: inset 0 0 12px #000, 0 0 20px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #2a1408 0%, #170a04 100%);
+        }
+
+        .btn-jawa {
+            background: linear-gradient(180deg, #572a12 0%, #2e1406 100%);
+            border: 2px solid #d4af37;
+            color: #f4ece1;
+            text-shadow: 1px 1px 2px #000;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-jawa:hover {
+            background: linear-gradient(180deg, #7c3e1b 0%, #4a210b 100%);
+            border-color: #fff0aa;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .btn-jawa:active, .btn-jawa.active {
+            background: linear-gradient(180deg, #d4af37 0%, #8c6a12 100%);
+            color: #120804;
+            text-shadow: none;
+            font-weight: bold;
+        }
+
+        /* Pulsing Hotspot Animation */
+        @keyframes pulseHotspot {
+            0% { transform: scale(0.9); opacity: 0.6; box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+            70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
+            100% { transform: scale(0.9); opacity: 0.6; box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+
+        .hotspot-pulse {
+            animation: pulseHotspot 1.8s infinite ease-in-out;
+        }
+
+        /* Scrollbar custom */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c0d06;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-kayuTua">
+
+    <!-- Top HUD Navigation -->
+    <header class="w-full max-w-5xl mx-auto frame-ukiran rounded-xl p-3 mb-3 flex flex-wrap justify-between items-center z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full border-2 border-emasJawa bg-kayuSedang flex items-center justify-center text-xl">
+                🔎
+            </div>
+            <div>
+                <h1 class="title-font text-base sm:text-xl font-extrabold text-emasJawa tracking-wider">DETEKTIF SUBASITA</h1>
+                <p class="text-[11px] sm:text-xs text-amber-200/80">Rekonstruksi Luputing Tata Krama Jawa</p>
+            </div>
+        </div>
+
+        <!-- Case Status & Evidence Tracker -->
+        <div class="flex items-center gap-3 mt-2 sm:mt-0">
+            <button onclick="openModal('serat-modal')" class="btn-jawa px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
+                📜 Serat Cathetan (<span id="evidence-count" class="text-emasJawa">0</span>)
+            </button>
+            <button onclick="toggleAudio()" id="btn-audio" class="btn-jawa px-3 py-1.5 rounded-lg text-xs font-bold">
+                🔊 Swara: ON
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-5xl mx-auto flex-1 flex flex-col gap-3 relative">
+        
+        <!-- Case Selector Banner & Phase Tabs -->
+        <div class="flex flex-wrap justify-between items-center bg-kayuSedang/80 border border-emasJawa/40 p-2.5 rounded-xl gap-2">
+            <!-- Active Case Title -->
+            <div>
+                <span id="case-badge" class="bg-merahAksen text-amber-100 text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-emasJawa/50">Kasus 1</span>
+                <h2 id="case-title" class="title-font text-sm sm:text-base font-bold text-emasJawa inline-block ml-2">Sowan ing Daleme Sesepuh</h2>
+            </div>
+
+            <!-- Stage/Phase Navigation Tabs -->
+            <div class="flex gap-1 bg-kayuTua/90 p-1 rounded-lg border border-emasJawa/30 text-xs">
+                <button id="tab-phase1" onclick="switchPhase(1)" class="btn-jawa active px-3 py-1 rounded">
+                    1. 🔍 Prikso Adegan
+                </button>
+                <button id="tab-phase2" onclick="switchPhase(2)" class="btn-jawa px-3 py-1 rounded">
+                    2. 🧩 Rekonstruksi
+                </button>
+                <button id="tab-phase3" onclick="switchPhase(3)" class="btn-jawa px-3 py-1 rounded">
+                    3. ⚖️ Putusan
+                </button>
+            </div>
+        </div>
+
+        <!-- PHASE 1: Canvas Scene & Magnifying Glass Investigation Area -->
+        <section id="phase1-view" class="flex-1 flex flex-col gap-3">
+            <div class="relative w-full h-[320px] sm:h-[400px] frame-ukiran rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                <!-- 2D Visual Interactive Canvas -->
+                <canvas id="investigationCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+                <!-- Dynamic Hotspots Overlay Container -->
+                <div id="hotspot-layer" class="absolute inset-0 pointer-events-none">
+                    <!-- Dynamic Interactive Hotspots appended via JS -->
+                </div>
+
+                <!-- Inspection Glass Notification Overlay -->
+                <div id="inspection-toast" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 bg-kayuSedang/95 border-2 border-emasJawa text-amber-100 px-4 py-2 rounded-xl text-xs sm:text-sm text-center shadow-2xl z-20 max-w-[90%] border-l-4 border-l-merahAksen">
+                    <span id="toast-text">Pilih perangan ingkang kliru ing adegan!</span>
+                </div>
+            </div>
+
+            <!-- Timeline Frame Scrubber Controls -->
+            <div class="bg-kayuSedang/90 border border-emasJawa/40 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="text-xs text-amber-200">
+                    <span class="font-bold text-emasJawa">Langkah Adegan:</span>
+                    <span id="step-description" class="italic ml-1">Langkah 1: Menyapa lan Mlebu...</span>
+                </div>
+                
+                <div id="step-buttons" class="flex items-center gap-2">
+                    <!-- Dynamic timeline step buttons generated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PHASE 2: Action Sequence Reconstruction Board -->
+        <section id="phase2-view" class="hidden flex-1 flex flex-col gap-3 bg-kayuSedang/90 border-2 border-emasJawa p-4 rounded-xl">
+            <div class="text-center mb-2">
+                <h3 class="title-font text-lg font-bold text-emasJawa">PANITAN URUTAN SUBASITA</h3>
+                <p class="text-xs text-amber-200/90">
+                    Atur ulang kertu tumindak ing ngisor iki supaya dadi urutan tata krama Jawa ingkang leres lan trep!
+                </p>
+            </div>
+
+            <!-- Action Sequence Cards List Container -->
+            <div id="reconstruction-board" class="flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
+                <!-- Dynamic Action Cards with Move Up/Down controls injected via JS -->
+            </div>
+
+            <div class="text-center mt-4">
+                <button onclick="evaluateReconstruction()" class="btn-jawa px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-amber-700 to-amber-900 border-2 border-emasJawa">
+                    ⚙️ UJI REKONSTRUKSI TATA KRAMA
+                </button>
+            </div>
+        </section>
+
+        <!-- PHASE 3: Detective Verdict & Evaluation Report -->
+        <section id="phase3-view" class="hidden flex-1 flex flex-col items-center justify-center bg-kayuSedang/95 border-2 border-emasJawa p-6 rounded-xl text-center">
+            <div class="w-16 h-16 rounded-full border-2 border-emasJawa bg-kayuTua flex items-center justify-center text-3xl mb-3">
+                🏛️
+            </div>
+            <h3 class="title-font text-xl sm:text-2xl font-bold text-emasJawa mb-1">PUTUSAN & HASIL REKONSTRUKSI</h3>
+            <p id="verdict-subtitle" class="text-xs text-amber-200 mb-4">Menganalisis kapinteran detektif ing babagan Subasita Jawa</p>
+
+            <!-- Score Summary Card -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg my-2">
+                <div class="bg-black/40 p-3 rounded-lg border border-emasJawa/30">
+                    <span class="text-xs text-amber-300 block">Bukti Luput Ditemokake</span>
+                    <span id="verdict-evidence" class="text-xl font-bold text-emasJawa">0 / 0</span>
+                </div>
+                <div class="bg-black/40 p-3 rounded-lg border border-emasJawa/30">
+                    <span class="text-xs text-amber-300 block">Status Rekonstruksi</span>
+                    <span id="verdict-status" class="text-xl font-bold text-red-400">Dereng Trep</span>
+                </div>
+            </div>
+
+            <!-- Cultural Explanation / Lesson -->
+            <div class="bg-kayuTua p-4 rounded-xl border border-emasJawa/40 max-w-xl text-left my-3 text-xs sm:text-sm text-amber-100 leading-relaxed">
+                <h4 class="font-bold text-emasJawa mb-1 border-b border-emasJawa/30 pb-1">📜 Wulang Subasita & Piwulang Adat:</h4>
+                <p id="verdict-lesson" class="italic text-amber-200/90">
+                    Pilih lan prikso kabeh adegan luput dhisik sadurunge nindakake rekonstruksi!
+                </p>
+            </div>
+
+            <!-- Case Progression Action Buttons -->
+            <div id="verdict-actions" class="flex flex-wrap gap-3 justify-center mt-4">
+                <button onclick="switchPhase(1)" class="btn-jawa px-4 py-2 rounded-xl text-xs font-bold">
+                    🔄 Prikso Bali Adegan
+                </button>
+                <button id="btn-next-case" onclick="nextCase()" class="btn-jawa px-5 py-2 rounded-xl text-xs font-bold text-emasJawa">
+                    ➡️ Lanjut Kasus Sabanjure
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Serat Cathetan (Detective Notebook Modal) -->
+    <div id="serat-modal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+        <div class="bg-kayuSedang border-2 border-emasJawa p-5 rounded-2xl max-w-xl w-full max-h-[85vh] flex flex-col text-xs sm:text-sm text-f4ece1 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-emasJawa/40 pb-2 mb-3">
+                <h3 class="title-font text-base sm:text-lg text-emasJawa font-bold">📜 SERAT CATHETAN LUPUTING TATA KRAMA</h3>
+                <button onclick="closeModal('serat-modal')" class="text-amber-300 text-lg font-bold">✕</button>
+            </div>
+            
+            <div id="evidence-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                <p class="text-amber-200/70 italic text-center py-6">Dereng wonten bukti luput ingkang ditemokake. Prikso adegan ing canvas!</p>
+            </div>
+
+            <div class="mt-4 pt-2 border-t border-emasJawa/30 text-center">
+                <button onclick="closeModal('serat-modal')" class="btn-jawa px-5 py-2 rounded-lg font-bold">TUTUP CATHETAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start & How to Play Overlay Modal -->
+    <div id="start-overlay" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+        <div class="bg-kayuSedang border-4 border-emasJawa p-6 rounded-2xl max-w-xl w-full text-center shadow-2xl">
+            <h1 class="title-font text-2xl sm:text-3xl text-emasJawa font-extrabold mb-2 tracking-widest drop-shadow-lg">DETEKTIF SUBASITA</h1>
+            <p class="text-amber-200 text-xs sm:text-sm mb-5 leading-relaxed">
+                Game Penyelidikan lan Rekonstruksi Luputing Tata Krama Jawa. Tugasmu minangka Detektif yaiku nemokake kesalahan (*faux pas*) ing adegan sosial lan ngatur ulang urutan tumindak kanthi bener!
+            </p>
+
+            <div class="bg-kayuTua p-3 rounded-xl border border-emasJawa/40 text-left text-xs space-y-2 mb-6">
+                <div class="flex items-start gap-2">
+                    <span class="text-emasJawa font-bold">1.</span>
+                    <span><strong>Prikso Adegan:</strong> Geser timeline adegan, klik perangan ingkang nyleneh (tangan, basa, posisi lungguh, praupan).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-emasJawa font-bold">2.</span>
+                    <span><strong>Rekonstruksi:</strong> Atur ulang kertu adegan supaya sesuai kaliyan unggah-ungguh subasita Jawa.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-emasJawa font-bold">3.</span>
+                    <span><strong>Putusan:</strong> Entuk evaluasi lan piwulang subasita ing saben kasus.</span>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="btn-jawa px-8 py-3 rounded-xl text-base font-bold tracking-wider hover:brightness-125">
+                ▶ MIWITI PENYELIDIKAN
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* Web Audio API Sound Synthesizer for Authentic Javanese Gamelan Tones */
+        class GamelanAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playBonangTone() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    // Pentatonic Slendro Note (E5 ~ 659.25Hz)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, this.ctx.currentTime);
+
+                    gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.2);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 1.2);
+                } catch(e) { console.error(e); }
+            }
+
+            playGong() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    // Deep Gong Sound (C2 ~ 65.41Hz)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(130.81, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(65.41, this.ctx.currentTime + 2.5);
+
+                    gain.gain.setValueAtTime(0.7, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 2.5);
+                } catch(e) { console.error(e); }
+            }
+
+            playThud() {
+                if (!this.enabled || !this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.25);
+
+                    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.25);
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        const audio = new GamelanAudio();
+
+        function toggleAudio() {
+            audio.enabled = !audio.enabled;
+            document.getElementById('btn-audio').innerText = audio.enabled ? "🔊 Swara: ON" : "🔇 Swara: OFF";
+        }
+
+        // Game Database containing 3 Interactive Cases
+        const casesData = [
+            {
+                id: 1,
+                badge: "Kasus 1",
+                title: "Sowan ing Daleme Sesepuh",
+                lesson: "Sowan ing daleme sesepuh kudu ngutamakake urutan sapaan marang sing luwih tuwa dhisik, benerake posisi sikil/lungguh, lan migunakake Basa Krama Alus.",
+                steps: [
+                    {
+                        desc: "Langkah 1: Mlebu lan Menyapa",
+                        hotspots: [
+                            {
+                                id: "c1_s1_h1",
+                                x: 65, y: 35, // percentage
+                                name: "Urutan Sapaan",
+                                isError: true,
+                                title: "Salah Urutan Menyapa",
+                                desc: "Tamu menyapa kancane dhisik tinimbang nyapa Mbah Kakung ingkang minangka pamenang dalem lan sesepuh!",
+                                fix: "Menyapa lan paring pakurmatan marang Mbah Kakung dhisik kanthi 'Nuwun sewu, Mbah'."
+                            },
+                            {
+                                id: "c1_s1_h2",
+                                x: 30, y: 45,
+                                name: "Asta lan Sikap Awak",
+                                isError: true,
+                                title: "Mlaku Tegak Tanpa Nunduk",
+                                desc: "Mlebu ruangan kanthi mlaku tegak tanpa tumunduk utawa tanpa nuwun sewu ing ngarepe sesepuh.",
+                                fix: "Mlaku kanthi awak rada tumunduk lan tangan tengen lurus mangisor."
+                            }
+                        ]
+                    },
+                    {
+                        desc: "Langkah 2: Posisi Lungguh lan Basa",
+                        hotspots: [
+                            {
+                                id: "c1_s2_h1",
+                                x: 32, y: 72,
+                                name: "Posisi Lungguh",
+                                isError: true,
+                                title: "Lungguh Ngangkang/Sikil Silang Diselonjorake",
+                                desc: "Lungguh kanthi sikil diselonjorake utawa ngangkang ing ngarepe Mbah Kakung.",
+                                fix: "Lungguh bersila (kanggo priya) utawa mimpang/simpuh (kanggo wanita) kanthi sopan."
+                            },
+                            {
+                                id: "c1_s2_h2",
+                                x: 50, y: 25,
+                                name: "Basa ingkang Digunakake",
+                                isError: true,
+                                title: "Guneman Ngoko Kasar",
+                                desc: "Matur marang Mbah Kakung migunakake Basa Ngoko Kasar: 'Aku rene meh njaluk tulung bro'.",
+                                fix: "Matur migunakake Basa Krama Alus: 'Sowan kula mriki sepisan silaturahmi...'."
+                            }
+                        ]
+                    }
+                ],
+                reconstructionCards: [
+                    { id: "rc1_1", text: "Menyapa lan paring pakurmatan marang sesepuh/pamenang dalem dhisik kanthi 'Nuwun sewu, Mbah'." },
+                    { id: "rc1_2", text: "Mlaku tumunduk lan ngatur posisi lungguh bersila ing ngandhap kanthi sopan." },
+                    { id: "rc1_3", text: "Matur maksud tujuan sowan kanthi nggunakake Basa Krama Alus." },
+                    { id: "rc1_4", text: "Ngenteni sasmita utawa dawuh saka sesepuh sadurunge miwiti rembagan liya." }
+                ]
+            },
+            {
+                id: 2,
+                badge: "Kasus 2",
+                title: "Mangan lan Ngombe ing Pasramuan Manten",
+                lesson: "Nalika dhahar ing pasramuan, aja nyela gunem sesepuh, aja njupuk dhaharan sadurunge dipun-manggakaken, lan wajib nggunakake astana tengen.",
+                steps: [
+                    {
+                        desc: "Langkah 1: Miyos ing Meja Dhahar",
+                        hotspots: [
+                            {
+                                id: "c2_s1_h1",
+                                x: 52, y: 65,
+                                name: "Tempo Ngalap Dhaharan",
+                                isError: true,
+                                title: "Ruyukan Sadurunge Dipun-manggakaken",
+                                desc: "Langsung njupuk cangkir lan nyamikan sadurunge tuan rumah ngendika 'mangga'.",
+                                fix: "Ngenteni pimpinan/tuan rumah paring sasmita 'mangga diunjuk/didhahar'."
+                            }
+                        ]
+                    },
+                    {
+                        desc: "Langkah 2: Cara Mangan lan Ngombe",
+                        hotspots: [
+                            {
+                                id: "c2_s2_h1",
+                                x: 35, y: 55,
+                                name: "Penggunaan Tangan",
+                                isError: true,
+                                title: "Nggunakake Tangan Kiwa",
+                                desc: "Njupuk unjukan lan nyamikan migunakake tangan kiwa.",
+                                fix: "Nggunakake tangan tengen kanthi siku disangga astana kiwa minangka pakurmatan."
+                            },
+                            {
+                                id: "c2_s2_h2",
+                                x: 70, y: 30,
+                                name: "Interupsi / Nyela Gunem",
+                                isError: true,
+                                title: "Nyela Rembagan Sesepuh",
+                                desc: "Nyerobot lan nyela guneman nalika Mbah Kakung nembe paring pitutur.",
+                                fix: "Ngrungokake kanthi titi lan nembe ngendika manawa dipun-aturi."
+                            }
+                        ]
+                    }
+                ],
+                reconstructionCards: [
+                    { id: "rc2_1", text: "Ngenteni tuan rumah paring dawuh 'mangga diunjuk lan didhahar'." },
+                    { id: "rc2_2", text: "Njupuk unjukan migunakake tangan tengen disangga siku kiwa." },
+                    { id: "rc2_3", text: "Ngunjuk lan dhahar alon-alon tanpa nyuwara (kemlakhar)." },
+                    { id: "rc2_4", text: "Mboten nyela rembagan nalika sesepuh nembe ngendika." }
+                ]
+            },
+            {
+                id: 3,
+                badge: "Kasus 3",
+                title: "Rembagan Pasrah Tampi Lamaran",
+                lesson: "Rembagan resmi adat butuh kepekaan maca micro-expression sesepuh, nuding barang/tiyang nggunakake jempol astana tengen, lan njaga intonasi swara.",
+                steps: [
+                    {
+                        desc: "Langkah 1: Tuding lan Solah Bawa",
+                        hotspots: [
+                            {
+                                id: "c3_s1_h1",
+                                x: 45, y: 42,
+                                name: "Cara Nuding",
+                                isError: true,
+                                title: "Nuding Nganggo Curiga (Penunjuk)",
+                                desc: "Nuding sesepuh utawa barang pasrahan nggunakake jari penunjuk (curiga) kanthi lurus.",
+                                fix: "Nuding migunakake jempol astana tengen kanthi posisi tangan ngepel alus."
+                            }
+                        ]
+                    },
+                    {
+                        desc: "Langkah 2: Micro-Expression Sesepuh",
+                        hotspots: [
+                            {
+                                id: "c3_s2_h1",
+                                x: 62, y: 22,
+                                name: "Raut Praupan Sesepuh",
+                                isError: true,
+                                title: "Mlerok & Ora Nyaman (Faux Pas)",
+                                desc: "Mbah Kakung mlerok lan bathukipun pusing amarga utusan rembagan ngendika kanthi swara serak lan kumalasa.",
+                                fix: "Ngedhunake intonasi swara lan ngandharake maksud kanthi alus lan andhap asor."
+                            }
+                        ]
+                    }
+                ],
+                reconstructionCards: [
+                    { id: "rc3_1", text: "Lungguh lemprak kanthi patrap ngapuranto lan sikap santun." },
+                    { id: "rc3_2", text: "Nuding sesepuh utawa barang pasrahan nggunakake jempol astana tengen." },
+                    { id: "rc3_3", text: "Tanggap marang micro-expression praupan sesepuh kanthi ngedhunake intonasi swara." },
+                    { id: "rc3_4", text: "Nampa pasrahan kanthi asta kalih lan tumunduk ngaturaken panuwun." }
+                ]
+            }
+        ];
+
+        let currentCaseIdx = 0;
+        let currentStepIdx = 0;
+        let activePhase = 1; // 1: Investigation, 2: Reconstruction, 3: Verdict
+        let discoveredEvidence = new Set(); // Set of evidence IDs
+        let currentReconstructionOrder = [];
+
+        // Canvas element setup
+        const canvas = document.getElementById('investigationCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = 800;
+            canvas.height = 450;
+            renderCanvasScene();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Canvas Scene Renderer based on current Case & Step
+        function renderCanvasScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background: Traditional Javanese Joglo Interior
+            const floorGrad = ctx.createLinearGradient(0, 250, 0, 450);
+            floorGrad.addColorStop(0, '#361b0c');
+            floorGrad.addColorStop(1, '#1c0d06');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, 250, 800, 200);
+
+            // Klasa / Bamboo Mat
+            ctx.fillStyle = '#b8a679';
+            ctx.fillRect(60, 300, 680, 130);
+            ctx.strokeStyle = '#7c6d48';
+            ctx.lineWidth = 1.5;
+            for(let x = 80; x < 730; x += 25) {
+                ctx.beginPath(); ctx.moveTo(x, 300); ctx.lineTo(x, 430); ctx.stroke();
+            }
+
+            // Wooden Pillars (Saka Guru)
+            ctx.fillStyle = '#261207';
+            ctx.fillRect(120, 0, 35, 330);
+            ctx.fillRect(645, 0, 35, 330);
+            // Gold Ukiran Accents
+            ctx.fillStyle = '#d4af37';
+            ctx.fillRect(115, 30, 45, 12);
+            ctx.fillRect(640, 30, 45, 12);
+
+            // Draw Case Characters Procedurally
+            const caseObj = casesData[currentCaseIdx];
+
+            if (caseObj.id === 1) {
+                // Elder (Mbah Kakung) seated on right
+                drawCharacter(560, 290, 'Elder', 'Mbah Kakung', true);
+                // Guest / Player on left
+                if (currentStepIdx === 0) {
+                    drawCharacter(220, 280, 'Guest_Standing', 'Tamu (Dina)', false, true); // straight standing error
+                    drawCharacter(380, 310, 'Peer', 'Budi (Kanca)', false);
+                } else {
+                    drawCharacter(260, 320, 'Guest_Seated_Bad', 'Tamu (Dina)', false); // bad leg posture
+                }
+            } else if (caseObj.id === 2) {
+                // Case 2: Feast Table View
+                drawCharacter(400, 260, 'Elder', 'Mbah Kakung', true);
+                // Table
+                ctx.fillStyle = '#2e1406';
+                ctx.fillRect(250, 320, 300, 80);
+                ctx.strokeStyle = '#d4af37';
+                ctx.strokeRect(255, 325, 290, 70);
+                // Drink & Snack
+                ctx.fillStyle = '#0f5231'; ctx.fillRect(310, 300, 22, 22); // Cup
+                ctx.fillStyle = '#8c1c1c'; ctx.beginPath(); ctx.arc(430, 310, 18, 0, Math.PI*2); ctx.fill(); // Plate
+
+                drawCharacter(200, 310, 'Guest_Hand_Left', 'Tamu', false);
+            } else if (caseObj.id === 3) {
+                // Case 3: Lamaran Conversation
+                drawCharacter(520, 260, 'Elder_Frown', 'Sesepuh', true);
+                drawCharacter(280, 290, 'Guest_Pointing_Index', 'Utusan', false);
+            }
+
+            // Render Hotspots overlay positions
+            renderHotspotsUI();
+        }
+
+        // Procedural Character Drawing Helper
+        function drawCharacter(x, y, type, label, isElder = false, isStanding = false) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Head & Skin
+            ctx.fillStyle = isElder ? '#e0b888' : '#e0ac69';
+            ctx.beginPath();
+            ctx.arc(0, -50, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair / Blangkon
+            ctx.fillStyle = '#3a1e0e';
+            ctx.beginPath();
+            ctx.arc(0, -54, 17, Math.PI, 0);
+            ctx.fill();
+            ctx.fillRect(12, -53, 6, 8); // Mondholan
+
+            // Face Details / Micro-Expression
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            if (type === 'Elder_Frown') {
+                // Frowning Eyebrows
+                ctx.beginPath(); ctx.moveTo(-8, -58); ctx.lineTo(-2, -54); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(8, -58); ctx.lineTo(2, -54); ctx.stroke();
+                // Frown Mouth
+                ctx.beginPath(); ctx.arc(0, -38, 5, Math.PI, 0); ctx.stroke();
+            } else {
+                // Eyes & Smile
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(-5, -51, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(5, -51, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(0, -44, 4, 0, Math.PI); ctx.stroke();
+            }
+
+            // Clothes (Beskap / Kebaya)
+            ctx.fillStyle = isElder ? '#1c1c1c' : (type.includes('Guest') ? '#8c1c1c' : '#1f4e5b');
+            if (isStanding) {
+                ctx.fillRect(-18, -32, 36, 50); // Upright torso
+                // Skirt Jarik
+                ctx.fillStyle = '#7c4c24';
+                ctx.fillRect(-17, 18, 34, 40);
+            } else {
+                ctx.fillRect(-20, -32, 40, 40); // Seated torso
+                // Seated Jarik / Legs
+                ctx.fillStyle = '#7c4c24';
+                if (type === 'Guest_Seated_Bad') {
+                    // Stretched legs error
+                    ctx.fillRect(-22, 8, 50, 20);
+                } else {
+                    ctx.fillRect(-24, 8, 48, 22);
+                }
+            }
+
+            // Arm Gesture Specifics
+            ctx.strokeStyle = '#e0ac69';
+            ctx.lineWidth = 5;
+            if (type === 'Guest_Pointing_Index') {
+                // Pointing with index finger
+                ctx.beginPath(); ctx.moveTo(10, -20); ctx.lineTo(45, -20); ctx.stroke();
+                ctx.fillStyle = '#f00'; ctx.font = 'bold 10px sans-serif';
+                ctx.fillText('👉 (Nuding)', 20, -28);
+            } else if (type === 'Guest_Hand_Left') {
+                // Reaching with left hand
+                ctx.beginPath(); ctx.moveTo(-10, -20); ctx.lineTo(40, 10); ctx.stroke();
+            }
+
+            // Label
+            ctx.fillStyle = '#d4af37';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, 0, 42);
+
+            ctx.restore();
+        }
+
+        // Render Interactive Hotspots over the Canvas
+        function renderHotspotsUI() {
+            const container = document.getElementById('hotspot-layer');
+            container.innerHTML = '';
+
+            const stepObj = casesData[currentCaseIdx].steps[currentStepIdx];
+            if (!stepObj) return;
+
+            stepObj.hotspots.forEach(hp => {
+                const btn = document.createElement('button');
+                btn.className = `absolute transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-2 border-emasJawa bg-merahAksen/70 text-amber-100 flex items-center justify-center font-bold text-xs pointer-events-auto hotspot-pulse shadow-lg cursor-pointer hover:scale-125 transition-transform`;
+                btn.style.left = `${hp.x}%`;
+                btn.style.top = `${hp.y}%`;
+                btn.innerHTML = discoveredEvidence.has(hp.id) ? '✓' : '🔎';
+
+                if (discoveredEvidence.has(hp.id)) {
+                    btn.classList.remove('bg-merahAksen/70', 'hotspot-pulse');
+                    btn.classList.add('bg-hijauSubasita', 'border-white');
+                }
+
+                btn.onclick = () => inspectHotspot(hp);
+                container.appendChild(btn);
+            });
+        }
+
+        // Hotspot Inspection Logic
+        function inspectHotspot(hp) {
+            audio.init();
+
+            if (hp.isError) {
+                if (!discoveredEvidence.has(hp.id)) {
+                    discoveredEvidence.add(hp.id);
+                    audio.playBonangTone();
+                    showToast(`Bener! Ditemokake Luputing Subasita: "${hp.title}"`);
+                    updateEvidenceCount();
+                } else {
+                    showToast(`Bukti "${hp.title}" wis tau dicathet ing Serat Cathetan.`);
+                }
+            } else {
+                audio.playThud();
+                showToast("Perangan iki wis sopan lan ora ana luputing subasita.");
+            }
+
+            renderHotspotsUI();
+        }
+
+        // Show Toast Notification Banner
+        function showToast(msg) {
+            const toast = document.getElementById('inspection-toast');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        // Update Evidence Counter HUD & Serat Cathetan Modal Content
+        function updateEvidenceCount() {
+            document.getElementById('evidence-count').innerText = discoveredEvidence.size;
+
+            const listContainer = document.getElementById('evidence-list');
+            listContainer.innerHTML = '';
+
+            if (discoveredEvidence.size === 0) {
+                listContainer.innerHTML = '<p class="text-amber-200/70 italic text-center py-6">Dereng wonten bukti luput ingkang ditemokake. Prikso adegan ing canvas!</p>';
+                return;
+            }
+
+            // Find all recorded evidence objects
+            casesData.forEach(c => {
+                c.steps.forEach(s => {
+                    s.hotspots.forEach(hp => {
+                        if (discoveredEvidence.has(hp.id)) {
+                            const card = document.createElement('div');
+                            card.className = 'bg-kayuTua border border-emasJawa/40 p-3 rounded-xl text-xs space-y-1';
+                            card.innerHTML = `
+                                <div class="flex justify-between items-center font-bold text-emasJawa">
+                                    <span>🚨 ${hp.title}</span>
+                                    <span class="text-[10px] bg-merahAksen px-1.5 py-0.5 rounded text-amber-100">${hp.name}</span>
+                                </div>
+                                <p class="text-amber-100/90">${hp.desc}</p>
+                                <div class="text-hijauSubasita text-[11px] font-semibold pt-1 border-t border-emasJawa/20">
+                                    ✨ Solusi Subasita: ${hp.fix}
+                                </div>
+                            `;
+                            listContainer.appendChild(card);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Phase 2 Reconstruction Cards Board Setup
+        function setupReconstructionBoard() {
+            const board = document.getElementById('reconstruction-board');
+            board.innerHTML = '';
+
+            const caseObj = casesData[currentCaseIdx];
+            // Initialize card order if not set
+            if (currentReconstructionOrder.length === 0) {
+                // Shuffle cards for challenge
+                currentReconstructionOrder = [...caseObj.reconstructionCards].sort(() => Math.random() - 0.5);
+            }
+
+            currentReconstructionOrder.forEach((card, index) => {
+                const item = document.createElement('div');
+                item.className = 'bg-kayuTua border-2 border-emasJawa/60 p-3 rounded-xl flex justify-between items-center gap-3 text-xs sm:text-sm text-amber-100 shadow-md';
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full bg-emasJawa text-kayuTua font-bold flex items-center justify-center text-xs">
+                            ${index + 1}
+                        </span>
+                        <span>${card.text}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="moveCard(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30"' : ''} class="btn-jawa px-2 py-0.5 rounded text-[10px]">▲</button>
+                        <button onclick="moveCard(${index}, 1)" ${index === currentReconstructionOrder.length - 1 ? 'disabled class="opacity-30"' : ''} class="btn-jawa px-2 py-0.5 rounded text-[10px]">▼</button>
+                    </div>
+                `;
+                board.appendChild(item);
+            });
+        }
+
+        function moveCard(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= currentReconstructionOrder.length) return;
+
+            const temp = currentReconstructionOrder[index];
+            currentReconstructionOrder[index] = currentReconstructionOrder[newIndex];
+            currentReconstructionOrder[newIndex] = temp;
+
+            setupReconstructionBoard();
+        }
+
+        // Evaluate Player's Reconstruction Order
+        function evaluateReconstruction() {
+            audio.init();
+            const caseObj = casesData[currentCaseIdx];
+
+            // Check if current order matches correct original sequence
+            let isCorrect = true;
+            for (let i = 0; i < caseObj.reconstructionCards.length; i++) {
+                if (currentReconstructionOrder[i].id !== caseObj.reconstructionCards[i].id) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                audio.playGong();
+                showToast("Luar biasa! Urutan rekonstruksi subasita sampun bener lan trep!");
+                switchPhase(3);
+            } else {
+                audio.playThud();
+                showToast("Urutan rekonstruksi dereng trep. Cobi teliti maneh piwulang subasita!");
+            }
+        }
+
+        // Phase / Tab Switcher
+        function switchPhase(phaseNum) {
+            activePhase = phaseNum;
+
+            document.getElementById('phase1-view').classList.add('hidden');
+            document.getElementById('phase2-view').classList.add('hidden');
+            document.getElementById('phase3-view').classList.add('hidden');
+
+            document.querySelectorAll('[id^="tab-phase"]').forEach(b => b.classList.remove('active'));
+
+            if (phaseNum === 1) {
+                document.getElementById('phase1-view').classList.remove('hidden');
+                document.getElementById('tab-phase1').classList.add('active');
+                renderCanvasScene();
+            } else if (phaseNum === 2) {
+                document.getElementById('phase2-view').classList.remove('hidden');
+                document.getElementById('tab-phase2').classList.add('active');
+                setupReconstructionBoard();
+            } else if (phaseNum === 3) {
+                document.getElementById('phase3-view').classList.remove('hidden');
+                document.getElementById('tab-phase3').classList.add('active');
+                updateVerdictScreen();
+            }
+        }
+
+        // Update Verdict Screen details
+        function updateVerdictScreen() {
+            const caseObj = casesData[currentCaseIdx];
+
+            // Total possible errors in this case
+            let totalCaseErrors = 0;
+            caseObj.steps.forEach(s => s.hotspots.forEach(hp => { if(hp.isError) totalCaseErrors++; }));
+
+            // Errors found by player for this case
+            let foundInCase = 0;
+            caseObj.steps.forEach(s => s.hotspots.forEach(hp => {
+                if(hp.isError && discoveredEvidence.has(hp.id)) foundInCase++;
+            }));
+
+            document.getElementById('verdict-evidence').innerText = `${foundInCase} / ${totalCaseErrors}`;
+
+            // Check if reconstruction is correct
+            let isReconCorrect = true;
+            for (let i = 0; i < caseObj.reconstructionCards.length; i++) {
+                if (!currentReconstructionOrder[i] || currentReconstructionOrder[i].id !== caseObj.reconstructionCards[i].id) {
+                    isReconCorrect = false;
+                    break;
+                }
+            }
+
+            const statusEl = document.getElementById('verdict-status');
+            if (isReconCorrect && foundInCase === totalCaseErrors) {
+                statusEl.innerText = "SAMPURNA (100%)";
+                statusEl.className = "text-xl font-bold text-green-400";
+            } else if (isReconCorrect) {
+                statusEl.innerText = "CUKUP (Rekonstruksi Bener)";
+                statusEl.className = "text-xl font-bold text-yellow-400";
+            } else {
+                statusEl.innerText = "DERENG TREP";
+                statusEl.className = "text-xl font-bold text-red-400";
+            }
+
+            document.getElementById('verdict-lesson').innerText = caseObj.lesson;
+        }
+
+        // Load Case Data into Engine
+        function loadCase(idx) {
+            currentCaseIdx = idx;
+            currentStepIdx = 0;
+            currentReconstructionOrder = [];
+
+            const caseObj = casesData[currentCaseIdx];
+            document.getElementById('case-badge').innerText = caseObj.badge;
+            document.getElementById('case-title').innerText = caseObj.title;
+
+            // Render Timeline Step Buttons
+            const stepBtnContainer = document.getElementById('step-buttons');
+            stepBtnContainer.innerHTML = '';
+
+            caseObj.steps.forEach((st, i) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-jawa px-3 py-1 rounded text-xs ${i === 0 ? 'active' : ''}`;
+                btn.innerText = `Adegan ${i + 1}`;
+                btn.onclick = () => {
+                    currentStepIdx = i;
+                    document.querySelectorAll('#step-buttons button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById('step-description').innerText = st.desc;
+                    renderCanvasScene();
+                };
+                stepBtnContainer.appendChild(btn);
+            });
+
+            document.getElementById('step-description').innerText = caseObj.steps[0].desc;
+            switchPhase(1);
+        }
+
+        function nextCase() {
+            if (currentCaseIdx < casesData.length - 1) {
+                loadCase(currentCaseIdx + 1);
+            } else {
+                // Restart to Case 1
+                loadCase(0);
+            }
+        }
+
+        function startGame() {
+            audio.init();
+            document.getElementById('start-overlay').classList.add('hidden');
+            loadCase(0);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        window.onload = function() {
+            resizeCanvas();
+        };
+    </script>
+</body>
+</html>
